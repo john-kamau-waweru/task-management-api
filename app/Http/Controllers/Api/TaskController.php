@@ -10,16 +10,27 @@ use Illuminate\Support\Facades\Validator;
 
 class TaskController extends Controller
 {
-    public function index(){
+    public function index(Request $request){
         // Get All Tasks
-        $tasks = Task::get();
+
+        $perPage = $request->query('limit', 10);
+
+        // paginate tasks
+        $tasks = Task::paginate($perPage);
+
         if($tasks->count() > 0){
             return response()->json([
                 "message" => "Tasks found",
-                "data" => TaskResource::collection($tasks)
+                "data" => TaskResource::collection($tasks),
+                "meta" => [
+                    "current_page"=> $tasks->currentPage(),
+                    "last_page" => $tasks->lastPage(),
+                    "per_page" => $tasks->perPage(),
+                    "total"=> $tasks->total()
+                ]
             ], 200);
         } else {
-            return response()->json(["message" => "No tasks available"], 204);
+            return response()->json(["message" => "No tasks available", "data" => []], 204);
         }
     }
 
